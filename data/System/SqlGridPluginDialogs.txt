@@ -1,0 +1,14 @@
+---+++ Confirmation dialog
+Parameters:
+   * title - message to be displayed
+   * message - message to be displayed
+   * ok_action - action when OK button is clicked
+   * cxl_action - action when cancel button is clicked
+
+%STARTSECTION{"confirm_dialog"}%
+<div title="%URLPARAM{title}%" class="jqUIDialog { modal:true, resizable:true, draggable:true, height:400, width:600}">
+%URLPARAM{"message"}%
+  <a class="jqUIDialogButton {icon:'ui-icon-circle-check'}" onclick="alert('hi'); false"  >%MAKETEXT{"Ok"}%</a>
+  <a class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"Cancel"}%</a>
+</div>
+%ENDSECTION{"confirm_dialog"}%

@@ -1,0 +1,8 @@
+# Release manifest for SqlGridPlugin
+data/System/SqlGridPlugin.txt 0644 Documentation
+data/System/SqlGridPluginDialogs.txt 0644 Documentation
+lib/Foswiki/Plugins/SqlGridPlugin.pm 0444 Perl module
+lib/Foswiki/Plugins/SqlGridPlugin/SqlParser.pm 0444 Perl module
+lib/Foswiki/Plugins/SqlGridPlugin/SqlConnector.pm 0444 Perl module
+lib/Foswiki/Plugins/SqlGridPlugin/SqlMysqlConnector.pm 0444 Perl module
+pub/System/SqlGridPlugin/gridfuncs.js 0444 Javascript
