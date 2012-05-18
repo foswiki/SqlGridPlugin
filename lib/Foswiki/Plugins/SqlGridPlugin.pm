@@ -92,7 +92,7 @@ sub initPlugin {
 
 sub loadSql {
 	my $sql = $_[0];
-	Foswiki::Plugins::SqlGridPlugin::SqlParser::parse($sql);
+	return Foswiki::Plugins::SqlGridPlugin::SqlParser::parse($sql);
 }
 
 sub SQLGRID {
@@ -118,17 +118,15 @@ sub SQLGRID {
 	$params->{fromwhere_params_connectorparam} = $params->remove('sqlparams') || '';
 
 	my $theSqlQuery = $params->{sql} || '';
-	my $h = loadSql($theSqlQuery);
-	while( my ($k,$v) = each %$h) {
-		$params->{$k} = $v;
+	if ($theSqlQuery) {
+        my $h = loadSql($theSqlQuery);
+	    while( my ($k,$v) = each %$h) {
+		    $params->{$k} = $v;
+    	}
 	}
-
-#   SMELL Think that this is dead code.
-	my $ondblClickRow = $params->remove('ondblClickRow');
 
 	my $table = $params->remove('table');
 	my $dbconn = $params->{'dbconn_connectorparam'};
-#	my $idcol = $params->{'_conn_idcol'};
 
 	my $editform = $params->{'editform'} || '';
 	my $addform = $params->{'addform'} || '';
@@ -147,10 +145,6 @@ EOQ
 
 ##	# TODO also check in %MAINWEB% first
 #	my $prefix = "%SCRIPTURL{view}%/%SYSTEMWEB%/SqlGridPluginDialogs?skin=text";
-
-#	my $addArgs;
-#	my $editArgs = "requireSelection: true, gridId: '$id', form: 'http://127.0.0.1:8080/fwdev/Sandbox/GothamsPlayerForms?skin=text&section=edit_dialog'";
-#	my $delArgs = "requireSelection: true, gridId: '$id', form: '${prefix};section=confirm_dialog;title=Delete;message=Not%20Implemented'";
 
 	my $editScript = '';
 	if ($editform) {
