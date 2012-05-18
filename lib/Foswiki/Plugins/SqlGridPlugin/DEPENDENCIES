@@ -2,5 +2,6 @@
 # Example:
 # Time::ParseDate,>=2003.0211,cpan,Required.
 # Foswiki::Plugins,>=1.2,perl,Requires version 1.2 of handler API.
-Foswiki::Plugins::JQGridPlugin,>=2.02,perl,Required
+Foswiki::Plugins::JQGridPlugin,>=2.03,perl,Required
+Foswiki::Plugins::SqlPlugin,>=1.02,perl,Required
 HOP::Lexer,>=0.032,cpan,Required
