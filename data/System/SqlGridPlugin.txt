@@ -1,18 +1,73 @@
----+!! !SqlGridPlugin
 <!--
-One line description, required for extensions repository catalog.
-BuildContrib will fill in the SHORTDESCRIPTION with the value of
-$SHORTDESCRIPTION from the .pm module, or you can redefine it here if you
-prefer.
-   * Set SHORTDESCRIPTION = %$SHORTDESCRIPTION%
+
+   PLEASE DO NOT EDIT THIS TOPIC
+
+   It is automatically generated from the subversion repository, and any changes
+   you make will simply be overwritten the next time a release is generated.
+
+   Instead, you could check your fix in, raise a bug in the Bugs web, or mail the author.
 -->
-%SHORTDESCRIPTION%
+
+---+!! <nop>%TOPIC%
 
 %TOC%
 
+---++ Description
+
+This plugin lets you build grids to access SQL databases.  Just provide a normal SQL query and
+this plugin will build a grid with paging and column sorting abilities.
+
+You can also setup CRU<strike>D</strike> capabilities, if your grid is just on one table.
+
 ---++ Usage
 
+%<nop>SQLGRID{ sql=" ... " }%
+
+   * =connector="mysql"= Name of the JQGridPlugin gridconnector class to use.
+   * =dbconn="gothams"= The DB connection specified in the SqlPlugin configuration.
+   * =idcol="plid"= The 'primary key' column in your query.  You must have one.
+   * =sql="select ... from ... where ..."= An SQL statement.
+
+In addition, the following parameters can be used for CRU<strike>D</strike> capabilities.
+
+   * =table="player"= The name of the table for insert or update.
+   * =editform="..."= A URL to generate the form for updates.
+   * =addform="..."= A URL to generate the form for inserts.
+
+This is a bit messy right now - the interface needs to be changed a bit.
+
+All additional parameters are passed verbatim through to JQGridPlugin.
+
+---+++ sql Parsing
+If you provide an sql parameter, then the plugin will parse it and inject the following parameters.
+If you have an SQL expression that's too complicated for the parser then instead of providing an sql parameter
+you can set the following:
+
+   * fromwhere_connectorparam - the part of the SQL query after 'from'.  
+   * columns - a comma-separated list of columns.
+   * col_${col}_expr_connectorparam - for each column, the sql expression for that column.
+
 ---++ Examples
+
+%<nop>SQLGRID{<br/>
+  connector="mysql"<br/>
+  dbconn="gothams"<br/>
+  idcol="plid"<br/>
+  sql="select plid, pl_team, tm_name, pl_nickname, pl_firstname, pl_lastname from player, team where pl_team = tmid"<br/>
+
+  plid_hidden="on"<br/>
+  pl_team_hidden="on"<br/>
+  tm_name_title="Team"<br/>
+  pl_nickname_title="Nickname"<br/>
+  pl_firstname_title="First Name"<br/>
+  pl_lastname_title="Last Name"<br/>
+  rows="5"<br/>
+  filterbar="on"<br/>
+  toolbar="on"<br/>
+  pager="on"<br/>
+  width="auto"<br/>
+  height="auto"<br/>
+}%
 
 ---++ Installation Instructions
 
