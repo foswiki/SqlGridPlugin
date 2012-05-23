@@ -70,6 +70,9 @@ sub initPlugin {
     return 1;
 }
 
+# I experimented with caching, however it made no performance difference to my queries.
+# Leaving this code in here for now just in case.
+#
 #use File::Spec;
 #use Storable;
 #

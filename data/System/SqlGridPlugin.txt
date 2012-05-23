@@ -38,14 +38,18 @@ This is a bit messy right now - the interface needs to be changed a bit.
 
 All additional parameters are passed verbatim through to JQGridPlugin.
 
----+++ sql Parsing
+---+++ SQL Parsing
 If you provide an sql parameter, then the plugin will parse it and inject the following parameters.
 If you have an SQL expression that's too complicated for the parser then instead of providing an sql parameter
-you can set the following:
+you can set the following parameters:
 
    * fromwhere_connectorparam - the part of the SQL query after 'from'.  
    * columns - a comma-separated list of columns.
    * col_${col}_expr_connectorparam - for each column, the sql expression for that column.
+
+The parser assumes that the select list expressions contain balanced parentheses.  So this would not work:
+
+=select '(' || foo as bar from table1=
 
 ---++ Examples
 

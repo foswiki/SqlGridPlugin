@@ -14,6 +14,8 @@ Parses an SQL expression and returns a hashtable that contains:
    * fromwhere_connectorparam - the part of the SQL query after 'from'.  
    * columns - a comma-separated list of columns.
    * col_${col}_expr_connectorparam - for each column, the sql expression for that column.
+
+Adapted from http://www.perl.com/pub/2006/01/05/parsing.html
 =cut
 
 sub parse {
