@@ -103,6 +103,16 @@ sub SQLGRID {
 	writeDebug("attrs " . $params->stringify())
 		if DEBUG;
 
+	my $templates = $params->remove('templates') || '';
+	if ($templates) {
+	    $params = _mergeTemplates($web, $templates, $params);
+	}
+	unless (defined $params->{'fromwhere_connectorparam'} or defined $params->{'sql'}) {
+	    writeDebug("Rendering as empty string because neither attribute 'fromwhere_connectorparam', 'sql' was present")
+            if DEBUG;
+	    return "";
+	}
+
 	my $id;
 	if (exists $params->{id}) {
 		$id = $params->{id};
@@ -233,6 +243,41 @@ EOQ
 //      onClickButton: sqlgrid_delrecord
     });
 =cut
+
+# Gets attributes from each topic in $templates, and creates a big string that contains all of them.
+# Attributes defined in templates can be overridden - relies on parsing behavior of Foswiki::Attrs class,
+# that if an attribute is defined more than once then the last value wins.
+
+sub _mergeTemplates($$;$);
+sub _mergeTemplates($$;$) {
+    my ($origWeb, $templates, $params) = @_;
+    my $newParams = '';
+    
+    my @templates = split ',', $templates;
+    for my $template (@templates) {
+        $template =~ s/\s+//g;
+        my ($web, $topic) = Foswiki::Func::normalizeWebTopicName($origWeb, $template);
+        writeDebug("merging $web.$topic")
+            if DEBUG;
+        my ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
+        my $templateParams;
+        if (defined $text and ($templateParams) = $text =~ /\%SQLGRID{(.*?)}\%/s) {
+            if ($templateParams =~ s/\btemplates\s*=\s*"(.*?)"/ /) {
+                $newParams .= " " . _mergeTemplates($web, $1)->stringify() . " ";
+            }
+            $newParams .= " $templateParams ";
+        }
+    }
+    $newParams .= $params->stringify()
+        if defined $params;
+
+    writeDebug("Creating param with $newParams")
+       if DEBUG;
+
+    return Foswiki::Attrs->new($newParams);
+}
+
+# REST
 
 sub _getRestParams {
 	my $request = $_[0];
