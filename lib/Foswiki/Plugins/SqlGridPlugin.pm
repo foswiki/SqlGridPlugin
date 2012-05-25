@@ -103,10 +103,11 @@ sub SQLGRID {
 	writeDebug("attrs " . $params->stringify())
 		if DEBUG;
 
-	my $templates = $params->remove('templates') || '';
-	if ($templates) {
-	    $params = _mergeTemplates($web, $templates, $params);
+	if (exists $params->{templates}) {
+	    my $attrs = _mergeTemplates('templates', $web, $params->stringify());
+	    $params = Foswiki::Attrs->new($attrs);
 	}
+
 	unless (defined $params->{'fromwhere_connectorparam'} or defined $params->{'sql'}) {
 	    writeDebug("Rendering as empty string because neither attribute 'fromwhere_connectorparam', 'sql' was present")
             if DEBUG;
@@ -248,33 +249,29 @@ EOQ
 # Attributes defined in templates can be overridden - relies on parsing behavior of Foswiki::Attrs class,
 # that if an attribute is defined more than once then the last value wins.
 
-sub _mergeTemplates($$;$);
-sub _mergeTemplates($$;$) {
-    my ($origWeb, $templates, $params) = @_;
+sub _mergeTemplates($$$);
+
+sub _mergeTemplates($$$) {
+    my ($templatesAttr, $origWeb, $params) = @_;
     my $newParams = '';
-    
-    my @templates = split ',', $templates;
-    for my $template (@templates) {
+
+    $params =~ s/\b$templatesAttr\s*=\s*"(.*?)"/ /
+        or return $params;
+    for my $template (split ',', $1) {
         $template =~ s/\s+//g;
         my ($web, $topic) = Foswiki::Func::normalizeWebTopicName($origWeb, $template);
         writeDebug("merging $web.$topic")
             if DEBUG;
         my ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
-        my $templateParams;
-        if (defined $text and ($templateParams) = $text =~ /\%SQLGRID{(.*?)}\%/s) {
-            if ($templateParams =~ s/\btemplates\s*=\s*"(.*?)"/ /) {
-                $newParams .= " " . _mergeTemplates($web, $1)->stringify() . " ";
-            }
-            $newParams .= " $templateParams ";
+        if (defined $text and $text =~ /\%SQLGRID{(.*?)}\%/s) {
+            $newParams .= ' ' . _mergeTemplates($templatesAttr, $web, $1);
         }
     }
-    $newParams .= $params->stringify()
-        if defined $params;
+    $newParams .= ' ' . $params;
 
-    writeDebug("Creating param with $newParams")
+    writeDebug("Returning $newParams")
        if DEBUG;
-
-    return Foswiki::Attrs->new($newParams);
+    return $newParams;
 }
 
 # REST
