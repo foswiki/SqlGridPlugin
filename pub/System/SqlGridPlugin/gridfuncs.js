@@ -23,7 +23,7 @@ function sqlgrid_showForm(args) {
 
 	href += ';_grid_id=' + gridId;
 	href += ';_selected_row=' + selrow;
-	href += ';formAction=' + formAction;
+	href += ';formAction=' + encodeURIComponent(formAction);
 	for (var k in rowData) {
 		href += ';col_' + k + '=' + encodeURIComponent(rowData[k]);
 	}

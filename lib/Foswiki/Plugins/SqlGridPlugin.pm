@@ -53,9 +53,6 @@ sub writeDebug($) {
 	Foswiki::Func::writeDebug($subroutine, $_[0]);
 }
 
-# SMELL make this a preference
-my $purgeSqlDependencies = 1;
-
 sub initPlugin {
     my ( $topic, $web, $user, $installWeb ) = @_;
 
@@ -140,26 +137,11 @@ sub SQLGRID {
 	}
 
 	my $table = $params->remove('table');
-	my $dbconn = $params->{'dbconn_connectorparam'};
-
-	my $editform = $params->{'editform'} || '';
-	my $addform = $params->{'addform'} || '';
-
-#   SMELL Think that this is dead code.
-	my $onSelectRowScript = '';
-#	if ($onSelectRow) {
-	if (0) {
-		$onSelectRowScript = <<EOQ;
-    jQuery('#$id').jqGrid('setGridParam', {
-	    onSelectRow: function() { alert('select row') }
-    });
-    //.trigger('reloadGrid');
-EOQ
-	}
+	my $dbconn = $params->{'dbconn_connectorparam'} = $params->remove('dbconn');
 
     my $buttonScripts = '';
     if (exists $params->{sqlgridbuttons}) {
-        my %formactionargs;
+        my %formactionargs = ( dbconn => $dbconn, idcol => $idcol );
         my %sqlgridbuttons;
         while (my ($k,$v) = each %{$params}) {
             if ($k =~ /(.*)_formactionarg$/) {
@@ -195,8 +177,6 @@ text="<script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SqlGridPlugin
     var pagerId = jQuery('#$id').jqGrid('getGridParam', 'pager');
 
     $buttonScripts
-
-$onSelectRowScript
 
   }
 </script>"}%
@@ -341,8 +321,6 @@ writeDebug($sql . join ',', @$args);
 	my $sth = Foswiki::Plugins::SqlPlugin::execute($dbconn, $sql, @$args);
 	$sth->finish;
 
-#	cleanPageCache($table);
-
 	return "1";
 }
 
@@ -365,17 +343,7 @@ writeDebug($sql . join ',', @$args);
 	my $sth = Foswiki::Plugins::SqlPlugin::execute($dbconn, $sql, @$args);
 	$sth->finish;
 
-#	cleanPageCache($table);
-
 	return "1";
 }
 
-#sub cleanPageCache {
-#	my $table = $_[0];
-
-	
-#}
-
 1;
-
-__END__
