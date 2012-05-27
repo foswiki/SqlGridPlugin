@@ -157,38 +157,26 @@ sub SQLGRID {
 EOQ
 	}
 
-##	# TODO also check in %MAINWEB% first
-#	my $prefix = "%SCRIPTURL{view}%/%SYSTEMWEB%/SqlGridPluginDialogs?skin=text";
+    my $buttonScripts = '';
+    if (exists $params->{sqlgridbuttons}) {
+        my %formactionargs;
+        my %sqlgridbuttons;
+        while (my ($k,$v) = each %{$params}) {
+            if ($k =~ /(.*)_formactionarg$/) {
+                $formactionargs{$1} = $v;
+            }
+            if ($k =~ /^(.*)_(.*)_sqlgridbutton$/) {
+                $sqlgridbuttons{$1}->{$2} = $v;
+            }
+        }
+        my $formactionargs = join ';', map { "$_=$formactionargs{$_}" } keys %formactionargs;
 
-	my $editScript = '';
-	if ($editform) {
-		my %editArgs = ( requireSelection => "true", gridId => "'$id'" );
-		$editArgs{form} = "'$editform'";
-		$editArgs{formAction} = "'" . Foswiki::urlEncode(Foswiki::Func::getScriptUrl(
-	          'SqlGridPlugin', 'simpleupdate', 'rest',
-	          dbconn => $dbconn,
-	          table => $table,
-	          idcol => $idcol
-	          )) . "'";
-		my $editArgs = join ', ', map { "$_: $editArgs{$_}" } keys %editArgs;
-		$editScript = addGridButton($id, 'Edit', 'Edit current record', 'ui-icon-pencil', $editArgs);
-	}
-
-	my $addScript = '';
-	if ($addform) {
-		my %addArgs = ( gridId => "'$id'" );
-		$addArgs{form} = "'$addform'";
-		$addArgs{formAction} = "'" . Foswiki::urlEncode(Foswiki::Func::getScriptUrl(
-	          'SqlGridPlugin', 'simpleinsert', 'rest',
-	          dbconn => $dbconn,
-	          table => $table,
-	          idcol => $idcol
-	          )) . "'";
-		my $addArgs = join ', ', map { "$_: $addArgs{$_}" } keys %addArgs;
-		$addScript = addGridButton($id, 'Add', 'Add a new record', 'ui-icon-plusthick', $addArgs);
-	}
-
-	my $delScript = '';
+        my @buttons = split ',', $params->{sqlgridbuttons};
+        for my $button (@buttons) {
+            $button =~ s/\s+//g;
+            $buttonScripts .= _addGridButton($id, $button, $sqlgridbuttons{$button}, $formactionargs, $params);
+        }
+    }
 
 	my $script=<<EOQ
 %JQREQUIRE{"ui::dialog, ui::button"}%
@@ -206,9 +194,7 @@ text="<script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SqlGridPlugin
     sqlPluginObjs.$id.hasInitRun = 1;
     var pagerId = jQuery('#$id').jqGrid('getGridParam', 'pager');
 
-    $addScript
-    $editScript
-    $delScript
+    $buttonScripts
 
 $onSelectRowScript
 
@@ -219,13 +205,52 @@ EOQ
     return "$script\n\%GRID{" . $params->stringify() . "}\%";
 }
 
-sub addGridButton {
-	my ($id, $label, $hover, $icon, $funcArgs) = @_;
+sub _addGridButton ($$$$$) {
+    my ($id, $button, $buttonParams, $formactionargs, $params) = @_;
+
+	my %funcArgs = ( gridId => "'$id'" );
+	if (exists $buttonParams->{needrow}) {
+	    $funcArgs{requireSelection} = $buttonParams->{needrow};
+	}
+	if ($buttonParams->{form}) {
+    	$funcArgs{form} = "'" . $buttonParams->{form} . "'";
+	} else {
+    	$funcArgs{form} = "'" . Foswiki::Func::getScriptUrl(
+                 'System', 'SqlGridPluginErrorMessages', 'view',
+                 skin => 'text',
+                 errortype => 'noform',
+                 button => $button
+                 ) . "'";
+	}
+
+    my $formAction = $buttonParams->{formaction} ||
+            Foswiki::Func::getScriptUrl(
+                 'System', 'SqlGridPluginErrorMessages', 'view',
+                 skin => 'text',
+                 errortype => 'noformaction',
+                 button => $button
+                 );
+    if ($formactionargs) {
+        if ($formAction =~ /\?/) {
+             $formAction .= ";$formactionargs";
+        } else {
+            $formAction .= "?$formactionargs";
+        }
+    }
+    $funcArgs{formAction} = "'$formAction'";
+
+	my $funcArgs = join ', ', map { "$_: $funcArgs{$_}" } keys %funcArgs;
+	my $caption = $buttonParams->{caption} || $button;
+	my $hover = $buttonParams->{hover} || $button;
+	my $iconCode = defined $buttonParams->{icon}
+	    ? "      buttonicon:'$buttonParams->{icon}',"
+	    : "";
+
 	return <<EOQ;
     jQuery('#$id').jqGrid('navButtonAdd', pagerId, {
-      caption:'%MAKETEXT{"$label"}%',
-      title:'%MAKETEXT{"$hover"}%', 
-      buttonicon:'$icon',
+      caption:'$caption',
+      title:'$hover', 
+      $iconCode
       onClickButton: function () {
         sqlgrid_showForm({ $funcArgs });
       }
@@ -233,17 +258,6 @@ sub addGridButton {
 EOQ
 }
 
-=head Params for Delete, if I get around to implementing it
-    jQuery('#$id').jqGrid('navButtonAdd', pagerId, {
-      caption:'%MAKETEXT{"Delete"}%',
-      title:'%MAKETEXT{"Delete current record"}%', 
-      buttonicon:'ui-icon-scissors',
-      onClickButton: function () {
-        sqlgrid_showForm({ $delArgs });
-      }
-//      onClickButton: sqlgrid_delrecord
-    });
-=cut
 
 # Gets attributes from each topic in $templates, and creates a big string that contains all of them.
 # Attributes defined in templates can be overridden - relies on parsing behavior of Foswiki::Attrs class,
@@ -263,8 +277,15 @@ sub _mergeTemplates($$$) {
         writeDebug("merging $web.$topic")
             if DEBUG;
         my ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
-        if (defined $text and $text =~ /\%SQLGRID{(.*?)}\%/s) {
-            $newParams .= ' ' . _mergeTemplates($templatesAttr, $web, $1);
+        my $attrs;
+        if (defined $text and ($attrs) = $text =~ /\%SQLGRID{(.*?)}\%/s) {
+            if ($attrs =~ /\%\w+{/) {
+                # Need to evaluate macros
+                $text =~ s/.*\%SQLGRID{/SQLGRID_xyzzy_pancakes{/s;
+                $text = Foswiki::Func::expandCommonVariables($text, $topic, $web, $meta);
+                ($attrs) = $text =~ /SQLGRID_xyzzy_pancakes{(.*?)}\%/s
+            }
+            $newParams .= ' ' . _mergeTemplates($templatesAttr, $web, $attrs);
         }
     }
     $newParams .= ' ' . $params;
