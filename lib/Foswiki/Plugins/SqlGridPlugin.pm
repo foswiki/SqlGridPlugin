@@ -123,9 +123,9 @@ sub SQLGRID {
 	} else {
 		$params->{gridComplete} = $jsFunc;
 	}
-	
-	my $idcol = $params->{idcol_connectorparam} = $params->remove('idcol') || '';
 
+	my $dbconn = $params->{'dbconn_connectorparam'} = $params->remove('dbconn');
+	my $idcol = $params->{idcol_connectorparam} = $params->remove('idcol') || '';
 	$params->{fromwhere_params_connectorparam} = $params->remove('sqlparams') || '';
 
 	my $theSqlQuery = $params->{sql} || '';
@@ -135,9 +135,6 @@ sub SQLGRID {
 		    $params->{$k} = $v;
     	}
 	}
-
-	my $table = $params->remove('table');
-	my $dbconn = $params->{'dbconn_connectorparam'} = $params->remove('dbconn');
 
     my $buttonScripts = '';
     if (exists $params->{sqlgridbuttons}) {
@@ -260,7 +257,7 @@ sub _mergeTemplates($$$) {
         my $attrs;
         if (defined $text and ($attrs) = $text =~ /\%SQLGRID{(.*?)}\%/s) {
             if ($attrs =~ /\%\w+{/) {
-                # Need to evaluate macros
+                # Need to evaluate macros.  Remove % from the macro so it doesn't get evaluated.
                 $text =~ s/.*\%SQLGRID{/SQLGRID_xyzzy_pancakes{/s;
                 $text = Foswiki::Func::expandCommonVariables($text, $topic, $web, $meta);
                 ($attrs) = $text =~ /SQLGRID_xyzzy_pancakes{(.*?)}\%/s
@@ -275,75 +272,16 @@ sub _mergeTemplates($$$) {
     return $newParams;
 }
 
-# REST
-
-sub _getRestParams {
-	my $request = $_[0];
-
-	my $dbconn = $request->param('dbconn');
-	my $table = $request->param('table');
-	my $idcol = $request->param('idcol');
-
-	$dbconn =~ s/[^\w]//g;
-	$table =~ s/[^\w]//g;
-	$idcol =~ s/[^\w]//g;
-
-	my @keys = ();
-	my @args = ();
-	for my $p ($request->param()) {
-		my $col = $p;
-		if ($col =~ s/^col_// && $col ne $idcol) {
-			$col =~ s/[^\w]//g;
-			my $val = $request->param($p);
-			push @keys, $col;
-			push @args, $val;
-		}
-	}
-	my $idval = $request->param("col_$idcol");
-
-	return ($dbconn, $table, $idcol, $idval, \@keys, \@args);
-}
+################################################################
 
 sub restSimpleupdate {
-	my ($session, $subject, $verb, $response) = @_;
-	my $request = Foswiki::Func::getCgiQuery();
-	writeDebug($request->query_string())
-		if DEBUG;
-
-	my ($dbconn, $table, $idcol, $idval, $keys, $args) = _getRestParams($request);
-	my $setStmt = join ', ', map { "$_ = ?" } @$keys;
-	
-	my $sql = "UPDATE $table SET $setStmt WHERE $idcol = ?";
-	push @$args, $idval;
-
-writeDebug($sql . join ',', @$args);
-
-	my $sth = Foswiki::Plugins::SqlPlugin::execute($dbconn, $sql, @$args);
-	$sth->finish;
-
-	return "1";
+    require Foswiki::Plugins::SqlGridPlugin::SimpleCRUD;
+    return Foswiki::Plugins::SqlGridPlugin::SimpleCRUD::restSimpleupdate(@_);
 }
 
-
 sub restSimpleinsert {
-	my ($session, $subject, $verb, $response) = @_;
-	my $request = Foswiki::Func::getCgiQuery();
-	writeDebug($request->query_string())
-		if DEBUG;
-
-	my ($dbconn, $table, $idcol, $idval, $keys, $args) = _getRestParams($request);
-
-
-	my $names = join ', ', @$keys;
-	my $questions = join ', ', map { '?' } @$keys;
-
-	my $sql = "INSERT INTO $table( $names ) VALUES ($questions)";
-
-writeDebug($sql . join ',', @$args);
-	my $sth = Foswiki::Plugins::SqlPlugin::execute($dbconn, $sql, @$args);
-	$sth->finish;
-
-	return "1";
+    require Foswiki::Plugins::SqlGridPlugin::SimpleCRUD;
+    return Foswiki::Plugins::SqlGridPlugin::SimpleCRUD::restSimpleinsert(@_);
 }
 
 1;
