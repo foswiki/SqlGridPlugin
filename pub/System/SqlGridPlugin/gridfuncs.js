@@ -30,24 +30,28 @@ function sqlgrid_showForm(args) {
 
 	$.get(href, function(content) { 
 		var $content = $(content);
-
         $content.hide();
         $("body").append($content);
         $content.data("autoOpen", true);
 
+        var form = $content.find("form:first");
+        var onsubmit = 'return sqlgrid_runFormAction(this, "' + gridId + '", "' + formAction + '")';
+        form.attr('onsubmit', onsubmit);
 	});
 }
 
-function sqlgrid_runFormAction(popup, gridId, formAction) {
+function sqlgrid_runFormAction(form, gridId, formAction) {
+    var $popup = $(form).closest('.sqlGridDialog');
 	var href = formAction;
-	var $inputs = $(popup).find(':input');
+	var $inputs = $popup.find(':input');
 	$inputs.each(function() {
 		if (this.name) {
 			href += ";" + this.name + "=" + encodeURIComponent(this.value);
 		}
 	});
 	$.get(href, function(content) {
-		$(popup).dialog("close");
+		$popup.dialog("close");
 		$('#'+gridId).trigger("reloadGrid");
 	});
+	return false;
 }

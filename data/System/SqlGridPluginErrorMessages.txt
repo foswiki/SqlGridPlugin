@@ -1,7 +1,7 @@
 <!--
-   * Set message_noform=%IF{" $'URLPARAM{errortype}' = 'noform'" then="No form specified."}%
-   * Set message_noformaction=%IF{" $'URLPARAM{errortype}' = 'noformaction'" then="No form action specified."}%
-   * Set message = %message_noform%%message_noformaction%
+   * Set message_noform=%IF{" $'URLPARAM{errortype}' = 'noform'" then="No form specified"}%
+   * Set message_noformaction=%IF{" $'URLPARAM{errortype}' = 'noformaction'" then="No form action specified"}%
+   * Set message = %message_noform%%message_noformaction% for button '%URLPARAM{"button"}%'
 -->
 
 <div title="Error" class="jqUIDialog { modal:true, resizable:false, draggable:false, height:400, width:600}">
