@@ -3,6 +3,8 @@ package Foswiki::Plugins::SqlGridPlugin::SimpleCRUD;
 use strict;
 use warnings;
 
+use constant SUCCESS_JSON => '{ "actionStatus": 200 }';
+
 use constant DEBUG => 1; # toggle me
 sub writeDebug($) {
 #	my $f = __FILE__;
@@ -61,9 +63,8 @@ writeDebug($sql . join ',', @$args);
 	my $sth = Foswiki::Plugins::SqlPlugin::execute($dbconn, $sql, @$args);
 	$sth->finish;
 
-	return "1";
+	return SUCCESS_JSON;
 }
-
 
 sub restSimpleinsert {
 	my ($session, $subject, $verb, $response) = @_;
@@ -83,9 +84,25 @@ writeDebug($sql . join ',', @$args);
 	my $sth = Foswiki::Plugins::SqlPlugin::execute($dbconn, $sql, @$args);
 	$sth->finish;
 
-	return "1";
+	return SUCCESS_JSON;
 }
 
+sub restSimpledelete {
+	my ($session, $subject, $verb, $response) = @_;
+	my $request = Foswiki::Func::getCgiQuery();
+	writeDebug($request->query_string())
+		if DEBUG;
 
+	my ($dbconn, $table, $idcol, $idval, $keys, $args) = _getRestParams($request);
+
+	my $sql = "DELETE FROM $table WHERE $idcol = ?";
+	my @args = ($idval);
+
+writeDebug($sql . join ',', @args);
+	my $sth = Foswiki::Plugins::SqlPlugin::execute($dbconn, $sql, @args);
+	$sth->finish;
+
+	return SUCCESS_JSON;
+}
 
 1;

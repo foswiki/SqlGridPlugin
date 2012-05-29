@@ -18,14 +18,31 @@ edit_form_sqlgridbutton="GenericEditFormURL_TODO"
 edit_formaction_sqlgridbutton="%SCRIPTURL{"rest"}%/SqlGridPlugin/simpleupdate"
 edit_needrow_sqlgridbutton="true"
 
-}%
-
-Not implemented yet
-
 delete_caption_sqlgridbutton="%MAKETEXT{"Delete"}%"
 delete_hover_sqlgridbutton="%MAKETEXT{"Delete current record"}%"
 delete_icon_sqlgridbutton="ui-icon-scissors"
-delete_form_sqlgridbutton="GenericDelFormURL_TODO"
+delete_form_sqlgridbutton="%SCRIPTURL{"view"}%/%WEB%/%TOPIC%?skin=text;section=confirm;title=%ENCODE{"%MAKETEXT{"Delete Record"}%"}%;message=%ENCODE{"%MAKETEXT{"Delete record"}% %"}%%ENCODE{"URLPARAM{_selected_row}"}%%ENCODE{"%?"}%"
 delete_formaction_sqlgridbutton="%SCRIPTURL{"rest"}%/SqlGridPlugin/simpledelete"
 delete_needrow_sqlgridbutton="true"
+
+}%
+
 </verbatim>
+
+---+++ Confirm Dialog
+Special arguments:
+   * title
+   * message
+
+%STARTSECTION{"confirm"}%
+<div title="%ENCODE{"%URLPARAM{title}%" old="&#37;" new="%"}%" class="sqlGridDialog jqUIDialog { modal:true, resizable:true, draggable:true, height:400, width:600}">
+
+%ENCODE{"%URLPARAM{message}%" old="&#37;" new="%"}%
+
+<form class='foswikiForm' >
+<input type='hidden' name='col_%URLPARAM{idcol}%' value='%URLPARAM{_selected_row}%'/>
+</form>
+  <a class="jqUIDialogButton jqUIDialogSubmit {icon:'ui-icon-circle-check'}">%MAKETEXT{"Ok"}%</a>
+  <a class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"Cancel"}%</a>
+</div>
+%ENDSECTION{"confirm"}%

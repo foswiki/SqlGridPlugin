@@ -64,6 +64,8 @@ sub initPlugin {
     Foswiki::Func::registerTagHandler( 'SQLGRID', \&SQLGRID );
     Foswiki::Func::registerRESTHandler( 'simpleupdate', \&restSimpleupdate );
     Foswiki::Func::registerRESTHandler( 'simpleinsert', \&restSimpleinsert );
+    Foswiki::Func::registerRESTHandler( 'simpledelete', \&restSimpledelete );
+
     return 1;
 }
 
@@ -127,6 +129,7 @@ sub SQLGRID {
 	my $dbconn = $params->{'dbconn_connectorparam'} = $params->remove('dbconn');
 	my $idcol = $params->{idcol_connectorparam} = $params->remove('idcol') || '';
 	$params->{fromwhere_params_connectorparam} = $params->remove('sqlparams') || '';
+	my $debugging = $params->remove('debugging') || "off";
 
 	my $theSqlQuery = $params->{sql} || '';
 	if ($theSqlQuery) {
@@ -139,6 +142,7 @@ sub SQLGRID {
     my $buttonScripts = '';
     if (exists $params->{sqlgridbuttons}) {
         my %formactionargs = ( dbconn => $dbconn, idcol => $idcol );
+        my %popupargs = ( dbconn => $dbconn, idcol => $idcol );
         my %sqlgridbuttons;
         while (my ($k,$v) = each %{$params}) {
             if ($k =~ /(.*)_formactionarg$/) {
@@ -149,11 +153,12 @@ sub SQLGRID {
             }
         }
         my $formactionargs = join ';', map { "$_=$formactionargs{$_}" } keys %formactionargs;
+        my $popupargs = join ';', map { "$_=$popupargs{$_}" } keys %popupargs;
 
         my @buttons = split ',', $params->{sqlgridbuttons};
         for my $button (@buttons) {
             $button =~ s/\s+//g;
-            $buttonScripts .= _addGridButton($id, $button, $sqlgridbuttons{$button}, $formactionargs, $params);
+            $buttonScripts .= _addGridButton($id, $button, $sqlgridbuttons{$button}, $popupargs, $formactionargs, $params, $debugging);
         }
     }
 
@@ -179,32 +184,55 @@ text="<script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SqlGridPlugin
 </script>"}%
 EOQ
 ;
-    return "$script\n\%GRID{" . $params->stringify() . "}\%";
+
+    my $debugDiv="";
+    if ($debugging eq "on") {
+        $debugDiv = "\n<div id='Debug_$id'> *DEBUGGING ON* <br></div>";
+    }
+
+    return "$script\n\%GRID{" . $params->stringify() . "}\%$debugDiv";
 }
 
-sub _addGridButton ($$$$$) {
-    my ($id, $button, $buttonParams, $formactionargs, $params) = @_;
+sub _addGridButton ($$$$$$$) {
+    my ($id, $button, $buttonParams, $popupargs, $formactionargs, $params, $debugging) = @_;
 
-	my %funcArgs = ( gridId => "'$id'" );
+	my %funcArgs = ( gridId => "'$id'", debugging => "'$debugging'" );
 	if (exists $buttonParams->{needrow}) {
 	    $funcArgs{requireSelection} = $buttonParams->{needrow};
 	}
-	if ($buttonParams->{form}) {
-    	$funcArgs{form} = "'" . $buttonParams->{form} . "'";
-	} else {
-    	$funcArgs{form} = "'" . Foswiki::Func::getScriptUrl(
+
+    my $popup = $buttonParams->{form} ||
+        Foswiki::Func::getScriptUrl(
                  'System', 'SqlGridPluginErrorMessages', 'view',
                  skin => 'text',
-                 errortype => 'noform',
-                 button => $button
-                 ) . "'";
-	}
-
+                 section => 'nopopup',
+                 button => $button);
+    if ($popupargs) {
+        if ($popup =~ /\?/) {
+            $popup .= ";$popupargs";
+        } else {
+            $popup .= "?$popupargs";
+        }
+    }
+    $funcArgs{form} = "'$popup'";
+#/*
+#	if ($buttonParams->{form}) {
+#    	$funcArgs{form} = "'" . $buttonParams->{form} . "'";
+#	} else {
+#    	$funcArgs{form} = "'" . Foswiki::Func::getScriptUrl(
+#                 'System', 'SqlGridPluginErrorMessages', 'view',
+#                 skin => 'text',
+#                 section => 'nopopup',
+#                 button => $button
+#                 ) . "'";
+#	}
+#*/
     my $formAction = $buttonParams->{formaction} ||
             Foswiki::Func::getScriptUrl(
                  'System', 'SqlGridPluginErrorMessages', 'view',
                  skin => 'text',
-                 errortype => 'noformaction',
+                 contenttype => 'application/json',
+                 section => 'nopopupaction',
                  button => $button
                  );
     if ($formactionargs) {
@@ -282,6 +310,11 @@ sub restSimpleupdate {
 sub restSimpleinsert {
     require Foswiki::Plugins::SqlGridPlugin::SimpleCRUD;
     return Foswiki::Plugins::SqlGridPlugin::SimpleCRUD::restSimpleinsert(@_);
+}
+
+sub restSimpledelete {
+    require Foswiki::Plugins::SqlGridPlugin::SimpleCRUD;
+    return Foswiki::Plugins::SqlGridPlugin::SimpleCRUD::restSimpledelete(@_);
 }
 
 1;
