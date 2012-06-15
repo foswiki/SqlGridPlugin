@@ -10,22 +10,20 @@ sqlgridbuttons="add,edit,delete"
 add_caption_sqlgridbutton="%MAKETEXT{"Add"}%"
 add_hover_sqlgridbutton="%MAKETEXT{"Add a new record"}%"
 add_icon_sqlgridbutton="ui-icon-plusthick"
-add_form_sqlgridbutton="GenericAddFormURL_TODO"
-add_formaction_sqlgridbutton="%SCRIPTURL{"rest"}%/SqlGridPlugin/simpleinsert"
+add_popupaction_sqlgridbutton="%SCRIPTURL{"rest"}%/SqlGridPlugin/simpleinsert"
 
 
 edit_caption_sqlgridbutton="%MAKETEXT{"Edit"}%"
 edit_hover_sqlgridbutton="%MAKETEXT{"Edit current record"}%"
 edit_icon_sqlgridbutton="ui-icon-pencil"
-edit_form_sqlgridbutton="GenericEditFormURL_TODO"
-edit_formaction_sqlgridbutton="%SCRIPTURL{"rest"}%/SqlGridPlugin/simpleupdate"
+edit_popupaction_sqlgridbutton="%SCRIPTURL{"rest"}%/SqlGridPlugin/simpleupdate"
 edit_needrow_sqlgridbutton="true"
 
 delete_caption_sqlgridbutton="%MAKETEXT{"Delete"}%"
 delete_hover_sqlgridbutton="%MAKETEXT{"Delete current record"}%"
 delete_icon_sqlgridbutton="ui-icon-scissors"
-delete_form_sqlgridbutton="%SCRIPTURL{"view"}%/%WEB%/%TOPIC%?skin=text;section=confirm;title=%ENCODE{"%MAKETEXT{"Delete Record"}%"}%;message=%ENCODE{"%MAKETEXT{"Delete record"}% %"}%%ENCODE{"URLPARAM{_selected_row}"}%%ENCODE{"%?"}%"
-delete_formaction_sqlgridbutton="%SCRIPTURL{"rest"}%/SqlGridPlugin/simpledelete"
+delete_popup_sqlgridbutton="%SCRIPTURL{"view"}%/%WEB%/%TOPIC%?skin=text;section=confirm;title=%ENCODE{"%MAKETEXT{"Delete Record"}%"}%;message=%ENCODE{"%MAKETEXT{"Delete record"}% %"}%%ENCODE{"URLPARAM{_selected_row}"}%%ENCODE{"%?"}%"
+delete_popupaction_sqlgridbutton="%SCRIPTURL{"rest"}%/SqlGridPlugin/simpledelete"
 delete_needrow_sqlgridbutton="true"
 
 }%

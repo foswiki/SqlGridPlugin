@@ -73,15 +73,15 @@ See SqlGridPluginExample.
 %<nop>SQLGRID{<br>
 &nbsp; &nbsp;   (Attributes from Quick Start SELECT Only) <br>
 &nbsp; &nbsp;   =templates="%SYSTEMWEB%.SqlGridPluginSimpleTable"= <br>
-&nbsp; &nbsp;   =table_formactionarg="name_of_table_for_CRUD"= <br>
-&nbsp; &nbsp;   =add_form_sqlgridbutton="URL_for_add_popup"= <br>
-&nbsp; &nbsp;   =edit_form_sqlgridbutton="URL_for_edit_popup"= <br>
+&nbsp; &nbsp;   =table_popupactionarg="name_of_table_for_CRUD"= <br>
+&nbsp; &nbsp;   =add_popup_sqlgridbutton="URL_for_add_popup"= <br>
+&nbsp; &nbsp;   =edit_popup_sqlgridbutton="URL_for_edit_popup"= <br>
 }%<br>
 
 %STARTSECTION{"AttrsSimpleCrud"}%
    * =templates= - SqlGridPluginSimpleTable contains default settings that simplify creating a CRUD interface operating on one table.  See [[%TOPIC%#The_Template_Attribute][The Template Attribute]]
-   * =table_formactionarg= - The default popup handlers require this parameter to be set to the name of the table targeted for INSERT / UPDATE / DELETE SQL statements.  See [[%TOPIC%#Popup_Actions][Popup Actions]]
-   * =[button]_form_sqlgridbutton= - This URL is retrieved when the [button] button is clicked.  See [[%TOPIC%#Creating_Popups][Creating Popups]]
+   * =table_popupactionarg= - The default popup handlers require this parameter to be set to the name of the table targeted for INSERT / UPDATE / DELETE SQL statements.  See [[%TOPIC%#Popup_Actions][Popup Actions]]
+   * =[button]_popup_sqlgridbutton= - This URL is retrieved when the [button] button is clicked.  See [[%TOPIC%#Creating_Popups][Creating Popups]]
 %ENDSECTION{"AttrsSimpleCrud"}%
 
 ---++ The Template Attribute
@@ -139,8 +139,8 @@ The popup action URL is passed the following parameters:
    * All input elements defined on an HTML form (e.g. &lt;input type="text"&gt;)
 
 In addition, all =%<nop>SQLGRID%= parameters of the form 
-&nbsp; &nbsp; =[key]_formactionarg=value= <br>
-Are passed thru to the form as key=value.
+&nbsp; &nbsp; =[key]_popupactionarg=value= <br>
+Are passed thru to the popup as key=value.
 
 
 ---++ SQL Parsing

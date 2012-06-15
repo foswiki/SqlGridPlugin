@@ -141,24 +141,24 @@ sub SQLGRID {
 
     my $buttonScripts = '';
     if (exists $params->{sqlgridbuttons}) {
-        my %formactionargs = ( dbconn => $dbconn, idcol => $idcol );
+        my %popupactionargs = ( dbconn => $dbconn, idcol => $idcol );
         my %popupargs = ( dbconn => $dbconn, idcol => $idcol );
         my %sqlgridbuttons;
         while (my ($k,$v) = each %{$params}) {
-            if ($k =~ /(.*)_formactionarg$/) {
-                $formactionargs{$1} = $v;
+            if ($k =~ /(.*)_popupactionarg$/) {
+                $popupactionargs{$1} = $v;
             }
             if ($k =~ /^(.*)_(.*)_sqlgridbutton$/) {
                 $sqlgridbuttons{$1}->{$2} = $v;
             }
         }
-        my $formactionargs = join ';', map { "$_=$formactionargs{$_}" } keys %formactionargs;
+        my $popupactionargs = join ';', map { "$_=$popupactionargs{$_}" } keys %popupactionargs;
         my $popupargs = join ';', map { "$_=$popupargs{$_}" } keys %popupargs;
 
         my @buttons = split ',', $params->{sqlgridbuttons};
         for my $button (@buttons) {
             $button =~ s/\s+//g;
-            $buttonScripts .= _addGridButton($id, $button, $sqlgridbuttons{$button}, $popupargs, $formactionargs, $params, $debugging);
+            $buttonScripts .= _addGridButton($id, $button, $sqlgridbuttons{$button}, $popupargs, $popupactionargs, $params, $debugging);
         }
     }
 
@@ -194,14 +194,14 @@ EOQ
 }
 
 sub _addGridButton ($$$$$$$) {
-    my ($id, $button, $buttonParams, $popupargs, $formactionargs, $params, $debugging) = @_;
+    my ($id, $button, $buttonParams, $popupargs, $popupactionargs, $params, $debugging) = @_;
 
 	my %funcArgs = ( gridId => "'$id'", debugging => "'$debugging'" );
 	if (exists $buttonParams->{needrow}) {
 	    $funcArgs{requireSelection} = $buttonParams->{needrow};
 	}
 
-    my $popup = $buttonParams->{form} ||
+    my $popup = $buttonParams->{popup} ||
         Foswiki::Func::getScriptUrl(
                  'System', 'SqlGridPluginErrorMessages', 'view',
                  skin => 'text',
@@ -214,9 +214,9 @@ sub _addGridButton ($$$$$$$) {
             $popup .= "?$popupargs";
         }
     }
-    $funcArgs{form} = "'$popup'";
+    $funcArgs{popup} = "'$popup'";
 
-    my $formAction = $buttonParams->{formaction} ||
+    my $popupAction = $buttonParams->{popupaction} ||
             Foswiki::Func::getScriptUrl(
                  'System', 'SqlGridPluginErrorMessages', 'view',
                  skin => 'text',
@@ -224,14 +224,14 @@ sub _addGridButton ($$$$$$$) {
                  section => 'nopopupaction',
                  button => $button
                  );
-    if ($formactionargs) {
-        if ($formAction =~ /\?/) {
-             $formAction .= ";$formactionargs";
+    if ($popupactionargs) {
+        if ($popupAction =~ /\?/) {
+             $popupAction .= ";$popupactionargs";
         } else {
-            $formAction .= "?$formactionargs";
+            $popupAction .= "?$popupactionargs";
         }
     }
-    $funcArgs{formAction} = "'$formAction'";
+    $funcArgs{popupAction} = "'$popupAction'";
 
 	my $funcArgs = join ', ', map { "$_: $funcArgs{$_}" } keys %funcArgs;
 	my $caption = $buttonParams->{caption} || $button;
@@ -246,7 +246,7 @@ sub _addGridButton ($$$$$$$) {
       title:'$hover', 
       $iconCode
       onClickButton: function () {
-        foswiki.SqlGridPlugin.showForm({ $funcArgs });
+        foswiki.SqlGridPlugin.showPopup({ $funcArgs });
       }
     });
 EOQ

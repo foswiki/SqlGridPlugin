@@ -19,10 +19,10 @@ foswiki.SqlGridPlugin.logDebugMessage = function (gridId, text) {
     }
 }
 
-foswiki.SqlGridPlugin.showForm = function (args) {
+foswiki.SqlGridPlugin.showPopup = function (args) {
 	var gridId = args.gridId;
-	var href = args.form;
-	var formAction = args.formAction;
+	var href = args.popup;
+	var popupAction = args.popupAction;
 	var debugging = args.debugging;
 
 	var selrow = $('#' + gridId).jqGrid('getGridParam', 'selrow');
@@ -36,13 +36,13 @@ foswiki.SqlGridPlugin.showForm = function (args) {
 
 	href += ';_grid_id=' + gridId;
 	href += ';_selected_row=' + selrow;
-	href += ';formAction=' + encodeURIComponent(formAction);
+	href += ';popupAction=' + encodeURIComponent(popupAction);
 	for (var k in rowData) {
 		href += ';col_' + k + '=' + encodeURIComponent(rowData[k]);
 	}
 
     if (debugging == "on") {
-        logDebugMessage(gridId, href);
+        foswiki.SqlGridPlugin.logDebugMessage(gridId, href);
     }
 
 	$.get(href, function(content) { 
@@ -52,7 +52,7 @@ foswiki.SqlGridPlugin.showForm = function (args) {
         $content.data("autoOpen", true);
 
         var form = $content.find("form:first");
-        var onsubmit = 'return foswiki.SqlGridPlugin.runFormAction(this, "' + gridId + '", "' + formAction + '", "' + debugging + '")';
+        var onsubmit = 'return foswiki.SqlGridPlugin.runPopupAction(this, "' + gridId + '", "' + popupAction + '", "' + debugging + '")';
         form.attr('onsubmit', onsubmit);
 	})
 	.error(function(errObj) {
@@ -60,16 +60,16 @@ foswiki.SqlGridPlugin.showForm = function (args) {
 	});
 }
 
-foswiki.SqlGridPlugin.runFormAction = function (form, gridId, formAction, debugging) {
+foswiki.SqlGridPlugin.runPopupAction = function (form, gridId, popupAction, debugging) {
     var $popup = $(form).closest('.sqlGridDialog');
-	var href = formAction;
+	var href = popupAction;
 	$popup.find(':input').each(function() {
 		if (this.name) {
 			href += ";" + this.name + "=" + encodeURIComponent(this.value);
 		}
 	});
     if (debugging == "on") {
-        logDebugMessage(gridId, href);
+        foswiki.SqlGridPlugin.logDebugMessage(gridId, href);
     }
 	$.getJSON(href, function(data) {
 	    var result = data.actionStatus;
