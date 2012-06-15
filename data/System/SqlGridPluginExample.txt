@@ -1,0 +1,21 @@
+%META:TOPICPARENT{name="SqlGridPlugin"}%
+
+%<nop>SQLGRID{<br/>
+  connector="mysql"<br/>
+  dbconn="gothams"<br/>
+  idcol="plid"<br/>
+  sql="select plid, pl_team, tm_name, pl_nickname, pl_firstname, pl_lastname from player, team where pl_team = tmid"<br/>
+
+  plid_hidden="on"<br/>
+  pl_team_hidden="on"<br/>
+  tm_name_title="Team"<br/>
+  pl_nickname_title="Nickname"<br/>
+  pl_firstname_title="First Name"<br/>
+  pl_lastname_title="Last Name"<br/>
+  rows="5"<br/>
+  filterbar="on"<br/>
+  toolbar="on"<br/>
+  pager="on"<br/>
+  width="auto"<br/>
+  height="auto"<br/>
+}%

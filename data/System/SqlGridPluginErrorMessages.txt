@@ -1,3 +1,4 @@
+%META:TOPICPARENT{name="SqlGridPlugin"}%
 %STARTSECTION{"nopopup"}%
 <div title="Error" class="jqUIDialog { modal:true, resizable:false, draggable:false, height:400, width:600}">
 ---+++ No popup specified for button '%URLPARAM{"button"}%'

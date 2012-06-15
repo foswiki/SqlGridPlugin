@@ -215,18 +215,7 @@ sub _addGridButton ($$$$$$$) {
         }
     }
     $funcArgs{form} = "'$popup'";
-#/*
-#	if ($buttonParams->{form}) {
-#    	$funcArgs{form} = "'" . $buttonParams->{form} . "'";
-#	} else {
-#    	$funcArgs{form} = "'" . Foswiki::Func::getScriptUrl(
-#                 'System', 'SqlGridPluginErrorMessages', 'view',
-#                 skin => 'text',
-#                 section => 'nopopup',
-#                 button => $button
-#                 ) . "'";
-#	}
-#*/
+
     my $formAction = $buttonParams->{formaction} ||
             Foswiki::Func::getScriptUrl(
                  'System', 'SqlGridPluginErrorMessages', 'view',
@@ -257,7 +246,7 @@ sub _addGridButton ($$$$$$$) {
       title:'$hover', 
       $iconCode
       onClickButton: function () {
-        sqlgrid_showForm({ $funcArgs });
+        foswiki.SqlGridPlugin.showForm({ $funcArgs });
       }
     });
 EOQ

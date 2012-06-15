@@ -1,4 +1,8 @@
-function myalert(msg) {
+var foswiki; if (!foswiki) foswiki = {};
+foswiki.SqlGridPlugin = {};
+
+
+foswiki.SqlGridPlugin.myalert = function (msg) {
 	var dialog = '<div title="Alert">' + msg + '</div>';
 	$(dialog).dialog({
 		modal:true,
@@ -8,14 +12,14 @@ function myalert(msg) {
 	});
 }
 
-function logDebugMessage(gridId, text) {
+foswiki.SqlGridPlugin.logDebugMessage = function (gridId, text) {
     var debugDiv = $("#Debug_" + gridId);
     if (debugDiv) {
         debugDiv.append(text + "<br>");
     }
 }
 
-function sqlgrid_showForm(args) {
+foswiki.SqlGridPlugin.showForm = function (args) {
 	var gridId = args.gridId;
 	var href = args.form;
 	var formAction = args.formAction;
@@ -24,7 +28,7 @@ function sqlgrid_showForm(args) {
 	var selrow = $('#' + gridId).jqGrid('getGridParam', 'selrow');
 	
 	if (!selrow && args.requireSelection) {
-		myalert('no row selected');
+		foswiki.SqlGridPlugin.myalert('no row selected');
 		return false;
 	}
 
@@ -48,19 +52,18 @@ function sqlgrid_showForm(args) {
         $content.data("autoOpen", true);
 
         var form = $content.find("form:first");
-        var onsubmit = 'return sqlgrid_runFormAction(this, "' + gridId + '", "' + formAction + '", "' + debugging + '")';
+        var onsubmit = 'return foswiki.SqlGridPlugin.runFormAction(this, "' + gridId + '", "' + formAction + '", "' + debugging + '")';
         form.attr('onsubmit', onsubmit);
 	})
 	.error(function(errObj) {
-        myalert(errObj.responseText);
+        foswiki.SqlGridPlugin.myalert(errObj.responseText);
 	});
 }
 
-function sqlgrid_runFormAction(form, gridId, formAction, debugging) {
+foswiki.SqlGridPlugin.runFormAction = function (form, gridId, formAction, debugging) {
     var $popup = $(form).closest('.sqlGridDialog');
 	var href = formAction;
-	var $inputs = $popup.find(':input');
-	$inputs.each(function() {
+	$popup.find(':input').each(function() {
 		if (this.name) {
 			href += ";" + this.name + "=" + encodeURIComponent(this.value);
 		}
@@ -73,13 +76,13 @@ function sqlgrid_runFormAction(form, gridId, formAction, debugging) {
 		$popup.dialog("close");
 		$('#'+gridId).trigger("reloadGrid");
 	    if (result != 200) {
-	        myalert(data.message);
+	        foswiki.SqlGridPlugin.myalert(data.message);
 	    }
 	})
 	.error(function(errObj) {
 		$popup.dialog("close");
 		$('#'+gridId).trigger("reloadGrid");
-        myalert(errObj.responseText);
+        foswiki.SqlGridPlugin.myalert(errObj.responseText);
 	});
 	return false;
 }

@@ -2,6 +2,7 @@
 data/System/SqlGridPlugin.txt 0644 Documentation
 data/System/SqlGridPluginDialogs.txt 0644 Documentation
 data/System/SqlGridPluginErrorMessages.txt 0644 Documentation
+data/System/SqlGridPluginExample.txt 0644 Documentation
 data/System/SqlGridPluginSimpleTable.txt 0644 Documentation
 lib/Foswiki/Plugins/SqlGridPlugin.pm 0444 Perl module
 lib/Foswiki/Plugins/SqlGridPlugin/SimpleCRUD.pm 0444 Perl module

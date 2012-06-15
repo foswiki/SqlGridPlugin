@@ -1,3 +1,6 @@
+%META:TOPICPARENT{name="SqlGridPlugin"}%
+---+++ Generic attributes for CRUD
+
 <verbatim>
 %SQLGRID{
 
@@ -29,11 +32,16 @@ delete_needrow_sqlgridbutton="true"
 
 </verbatim>
 
+%JQREQUIRE{"ui::dialog"}%
+
 ---+++ Confirm Dialog
 Special arguments:
    * title
    * message
 
+<a class='jqUIDialogLink' href='%SCRIPTURL{view}%/%WEB%/%TOPIC%?skin=text;section=confirm;title=%ENCODE{"Sample Title"}%;message=%ENCODE{"Sample Message"}%'>Display Popup</a>
+
+<verbatim>
 %STARTSECTION{"confirm"}%
 <div title="%ENCODE{"%URLPARAM{title}%" old="&#37;" new="%"}%" class="sqlGridDialog jqUIDialog { modal:true, resizable:true, draggable:true, height:400, width:600}">
 
@@ -46,3 +54,4 @@ Special arguments:
   <a class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"Cancel"}%</a>
 </div>
 %ENDSECTION{"confirm"}%
+</verbatim>

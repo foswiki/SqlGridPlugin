@@ -14,31 +14,136 @@
 
 ---++ Description
 
-This plugin lets you build grids to access SQL databases.  Just provide a normal SQL query and
-this plugin will build a grid with paging and column sorting abilities.
+Navigate SQL data with built-in paging, sorting, and filtering.
+Also can be used to build full CRUD (CReate, Update, Delete) capabilities.
 
-You can also setup CRU<strike>D</strike> capabilities, if your grid is just on one table.
+*Note* - currently only supports mysql.  =SqlMysqlConnector.pm= includes hints on how Oracle and Sybase could be
+supported - please contact the author if you want to contribute code.
 
----++ Usage
+---++ Prerequisite Plugins
 
-%<nop>SQLGRID{ sql=" ... " }%
+!SqlGridPlugin is built on top of other plugins.  The below plugins must
+be installed and configured (on the [[%SCRIPTURL{configure}%][configure]] page) by the Foswiki administrator as a pre-requisite to using !SqlGridPlugin.
+!SqlGridPlugin itself does not have any settings that need to be configured by the Foswiki administrator.
 
-   * =connector="mysql"= Name of the JQGridPlugin gridconnector class to use.
-   * =dbconn="gothams"= The DB connection specified in the SqlPlugin configuration.
-   * =idcol="plid"= The 'primary key' column in your query.  You must have one.
-   * =sql="select ... from ... where ..."= An SQL statement.
+---+++ !JQGridPlugin
 
-In addition, the following parameters can be used for CRU<strike>D</strike> capabilities.
+The Foswiki wrapper for [[http://www.trirand.com/blog/][jqGrid]].
 
-   * =table="player"= The name of the table for insert or update.
-   * =editform="..."= A URL to generate the form for updates.
-   * =addform="..."= A URL to generate the form for inserts.
+See the documentation for JQGridPlugin to see all the options available to configure the grid view.
+All unprocessed options for %<nop>SQLGRID% are passed along to %<nop>GRID%.
 
-This is a bit messy right now - the interface needs to be changed a bit.
+---+++ !SqlPlugin
 
-All additional parameters are passed verbatim through to JQGridPlugin.
+SqlPlugin provides one place to configure perl DBI database connections, and to configure
+access control.
 
----+++ SQL Parsing
+---+++ !JQueryUIDialog
+
+JQueryUIDialog is used to create popup windows for CRUD actions.  This plugin doesn't require any configuration.
+
+---++ Example
+
+See SqlGridPluginExample.
+
+---++ Quick Starts
+
+---+++ Quick Start SELECT Only
+
+%<nop>SQLGRID{<br>
+&nbsp; &nbsp; =connector="mysql"= <br>
+&nbsp; &nbsp;   =dbconn="a connector configured in !SqlPlugin"= <br>
+&nbsp; &nbsp;   =idcol="the column to treat as the primary key"= <br>
+&nbsp; &nbsp;   =sql="SELECT blah blah FROM blah blah WHERE blah = blah"= <br>
+}%<br>
+
+%STARTSECTION{"AttrsSelectOnly"}%
+   * =connector= - A JQGridPlugin connector, which must be configured in JQGridPlugin's =ExternalConnectors= section on the [[%SCRIPTURL{configure}%][configure]] web page.  For example, here is how to configure the mysql connector:
+<verbatim>
+{
+  'mysql' => 'Foswiki::Plugins::SqlGridPlugin::SqlMysqlConnector'
+}
+</verbatim>
+   * =dbconn= - An SqlPlugin connection, which must be configured in SqlPlugins's Databases section on the [[%SCRIPTURL{configure}%][configure]] web page.
+   * =idcol= - Each SQL query must have a column that uniquely identifies the row - this is required for the grid to work properly.
+   * =sql= - This SQL statement is parsed so that the back-end code can be able to dynamically generate queries to sort on any desired column, etc.
+%ENDSECTION{"AttrsSelectOnly"}%
+
+---+++ Quick Start Simple CRUD
+%<nop>SQLGRID{<br>
+&nbsp; &nbsp;   (Attributes from Quick Start SELECT Only) <br>
+&nbsp; &nbsp;   =templates="%SYSTEMWEB%.SqlGridPluginSimpleTable"= <br>
+&nbsp; &nbsp;   =table_formactionarg="name_of_table_for_CRUD"= <br>
+&nbsp; &nbsp;   =add_form_sqlgridbutton="URL_for_add_popup"= <br>
+&nbsp; &nbsp;   =edit_form_sqlgridbutton="URL_for_edit_popup"= <br>
+}%<br>
+
+%STARTSECTION{"AttrsSimpleCrud"}%
+   * =templates= - SqlGridPluginSimpleTable contains default settings that simplify creating a CRUD interface operating on one table.  See [[%TOPIC%#The_Template_Attribute][The Template Attribute]]
+   * =table_formactionarg= - The default popup handlers require this parameter to be set to the name of the table targeted for INSERT / UPDATE / DELETE SQL statements.  See [[%TOPIC%#Popup_Actions][Popup Actions]]
+   * =[button]_form_sqlgridbutton= - This URL is retrieved when the [button] button is clicked.  See [[%TOPIC%#Creating_Popups][Creating Popups]]
+%ENDSECTION{"AttrsSimpleCrud"}%
+
+---++ The Template Attribute
+=templates="Web.FirstAttributeDefaultsTopic, Web2.<nop>SecondOne"= <br>
+Each topic in the list is checked to see if it contains an =%<nop>SQLGRID%= macro.  The values 
+in the =%<nop>SQLGRID%= macros are evaluated (if they contain Topic Markup Language), and then
+used as default values for the =%<nop>SQLGRID%= macro.
+If an attribute is present in more than one topic, then the value in the last topic takes precedence.
+If a template has a template, then it is expanded.
+
+---++ Adding Buttons to the Grid
+
+Three things are required to add buttons to the grid:
+
+   1 Specifying the button caption, icon etc. in the =%<nop>SQLGRID%= macro.
+   1 Creating the popup that is displayed when the user clicks the button.
+   1 Hooking up to simple CRUD REST handler.  More complex usage will require writing a custom REST handler (e.g. if INSERTs must be done on two tables).
+
+See SqlGridPluginSimpleTable for an example.  The =delete= button is fully working 'out of the box',
+but the =edit= and =add= buttons need some additional customization (Step 2).
+
+---+++ Button Specifications
+=sqlgridbuttons="button1,button2,button3"= <br>
+A list of buttons to be placed under the grid, in the order that they should appear.
+
+%STARTSECTION{"AttrsButton"}%
+   * =[button]_caption_sqlgridbutton="%MAKETEXT{"Text on button"}%"= <br>
+   * =[button]_hover_sqlgridbutton="%MAKETEXT{"Displayed when hovering mouse over button"}%"= <br>
+   * =[button]_icon_sqlgridbutton="a JQuery-UI icon name"= <br>
+   * =[button]_popup_sqlgridbutton="URL for the popup"= <br>
+   * =[button]_popupaction_sqlgridbutton="URL for the popup action"= <br>
+   * =[button]_needrow_sqlgridbutton="true if the button requires that the user has clicked on a row first"= <br>
+%ENDSECTION{"AttrsButton"}%
+
+Attributes for a button named [button].  (The VarMAKETEXT Macro is used for Foswiki's built-in language localization)
+
+---+++ Creating Popups
+
+The =[button]_popupaction_sqlgridbutton= attribute contains a URL that is loaded when =[button]= is clicked.
+Assuming that this URL is generated from a foswiki topic, it will likely contain the following two parameters:
+   * =skin=text= This returns the bare content, ignoring the skin path (See SkinTemplates).
+   * =section=sectionName= Specifies the section to use - so that the referred topic can also include other content (documentation, other popups, etc.)
+
+The Popup URL is passed the following parameters:
+   * =dbconn= - passthru from the %<nop>SQLGRID%
+   * =idcol= - passthru from the %<nop>SQLGRID%
+   * =_selected_row= - the value of idcol for the currently selected row
+   * =col_[column]= - the value of column
+
+---+++ Popup Actions
+The popup action URL is passed the following parameters:
+
+   * =dbconn= - passthru from the %<nop>SQLGRID%
+   * =idcol= - passthru from the %<nop>SQLGRID%
+   * All input elements defined on an HTML form (e.g. &lt;input type="text"&gt;)
+
+In addition, all =%<nop>SQLGRID%= parameters of the form 
+&nbsp; &nbsp; =[key]_formactionarg=value= <br>
+Are passed thru to the form as key=value.
+
+
+---++ SQL Parsing
 If you provide an sql parameter, then the plugin will parse it and inject the following parameters.
 If you have an SQL expression that's too complicated for the parser then instead of providing an sql parameter
 you can set the following parameters:
@@ -51,27 +156,18 @@ The parser assumes that the select list expressions contain balanced parentheses
 
 =select '(' || foo as bar from table1=
 
----++ Examples
+---++ All Attributes to %<nop>SQLGRID% Macro
 
-%<nop>SQLGRID{<br/>
-  connector="mysql"<br/>
-  dbconn="gothams"<br/>
-  idcol="plid"<br/>
-  sql="select plid, pl_team, tm_name, pl_nickname, pl_firstname, pl_lastname from player, team where pl_team = tmid"<br/>
+*Select Only* <br>
+%INCLUDE{"%TOPIC%" section="AttrsSelectOnly"}%
+*Simple CRUD* <br>
+%INCLUDE{"%TOPIC%" section="AttrsSimpleCrud"}%
+*Buttons* <br>
+%INCLUDE{"%TOPIC%" section="AttrsButton"}%
+*Other* <br>
+   * =debugging="on"= - Prints URLs in a div below the grid, helpful for debugging.
 
-  plid_hidden="on"<br/>
-  pl_team_hidden="on"<br/>
-  tm_name_title="Team"<br/>
-  pl_nickname_title="Nickname"<br/>
-  pl_firstname_title="First Name"<br/>
-  pl_lastname_title="Last Name"<br/>
-  rows="5"<br/>
-  filterbar="on"<br/>
-  toolbar="on"<br/>
-  pager="on"<br/>
-  width="auto"<br/>
-  height="auto"<br/>
-}%
+All additional parameters are passed verbatim through to JQGridPlugin.
 
 ---++ Installation Instructions
 
@@ -79,11 +175,8 @@ The parser assumes that the select list expressions contain balanced parentheses
 
 ---++ Info
 
-Many thanks to the following sponsors for supporting this work:
-   * Acknowledge any sponsors here
-
-|  Author(s): | |
-|  Copyright: | &copy; |
+|  Author(s): | Kip Lubliner |
+|  Copyright: | &copy; 2012 Kip Lubliner |
 |  License: | [[http://www.gnu.org/licenses/gpl.html][GPL (Gnu General Public License)]] |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
