@@ -97,10 +97,25 @@ sub loadSql {
 	return Foswiki::Plugins::SqlGridPlugin::SqlParser::parse($sql);
 }
 
+my $init = undef;
+sub initialize($) {
+    my ($session) = @_;
+
+    if ($init) {
+        return;
+    }
+    $init = 1;
+
+    my $script = "<script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SqlGridPlugin/gridfuncs.js'></script>";
+    Foswiki::Func::addToZone('script', 'SqlGridPlugin::init', $script);
+}
+
 sub SQLGRID {
     my($session, $params, $topic, $web, $topicObject) = @_;
 	writeDebug("attrs " . $params->stringify())
 		if DEBUG;
+
+    initialize($session);
 
 	if (exists $params->{templates}) {
 	    my $attrs = _mergeTemplates('templates', $web, $params->stringify());
@@ -164,18 +179,16 @@ sub SQLGRID {
 
 	my $script=<<EOQ
 %JQREQUIRE{"ui::dialog, ui::button"}%
-%ADDTOZONE{"script" id="SqlGridPlugin" requires="JQUERYPLUGIN::UI::DIALOG"
-text="<script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SqlGridPlugin/gridfuncs.js'></script>
-<script type='text/javascript'>
-  var sqlPluginObjs = {}; // SMELL - should be run once
-  sqlPluginObjs.$id = {};
-  sqlPluginObjs.$id.hasInitRun = 0;
+%ADDTOZONE{"script" id="SqlGridPlugin::grid::$id" requires="JQUERYPLUGIN::UI::DIALOG, SqlGridPlugin::init"
+text="<script type='text/javascript'>
+  foswiki.SqlGridPlugin.gridLocalData.$id = {};
+  foswiki.SqlGridPlugin.gridLocalData.$id.hasInitRun = 0;
 
 //  var hasRan_$jsFunc = 0;
   function $jsFunc() {
-    if (sqlPluginObjs.$id.hasInitRun != 0)
+    if (foswiki.SqlGridPlugin.gridLocalData.$id.hasInitRun != 0)
       return;
-    sqlPluginObjs.$id.hasInitRun = 1;
+    foswiki.SqlGridPlugin.gridLocalData.$id.hasInitRun = 1;
     var pagerId = jQuery('#$id').jqGrid('getGridParam', 'pager');
 
     $buttonScripts

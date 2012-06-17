@@ -1,6 +1,6 @@
 var foswiki; if (!foswiki) foswiki = {};
 foswiki.SqlGridPlugin = {};
-
+foswiki.SqlGridPlugin.gridLocalData = {};
 
 foswiki.SqlGridPlugin.myalert = function (msg) {
 	var dialog = '<div title="Alert">' + msg + '</div>';

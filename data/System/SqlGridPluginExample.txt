@@ -1,21 +1,195 @@
 %META:TOPICPARENT{name="SqlGridPlugin"}%
 
-%<nop>SQLGRID{<br/>
-  connector="mysql"<br/>
-  dbconn="gothams"<br/>
-  idcol="plid"<br/>
-  sql="select plid, pl_team, tm_name, pl_nickname, pl_firstname, pl_lastname from player, team where pl_team = tmid"<br/>
+<form>
+*Connector is %URLPARAM{"connector" default="mysql"}%* <br>
+<select name='connector' value='%URLPARAM{"connector" default="mysql"}%'>
+  <option>mysql</option>
+</select>
 
-  plid_hidden="on"<br/>
-  pl_team_hidden="on"<br/>
-  tm_name_title="Team"<br/>
-  pl_nickname_title="Nickname"<br/>
-  pl_firstname_title="First Name"<br/>
-  pl_lastname_title="Last Name"<br/>
-  rows="5"<br/>
-  filterbar="on"<br/>
-  toolbar="on"<br/>
-  pager="on"<br/>
-  width="auto"<br/>
-  height="auto"<br/>
+*dbconn is %URLPARAM{"dbconn" default="sqlgridtest"}%* <br>
+<input type='text' name='dbconn' size='80' value='%URLPARAM{"dbconn" default="sqlgridtest"}%'/>
+
+<input value="Update Example" type='submit'/>
+</form>
+
+---+++ Setup - Mysql
+
+*Database Creation*
+
+<verbatim>
+mysql -u root -p
+[enter password]
+
+create database sqlgridtest;
+CREATE USER 'sqlgridtest'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON sqlgridtest.* TO 'sqlgridtest'@'localhost';
+
+[exit shell]
+
+mysql -u sqlgridtest -p
+[enter 'password']
+
+use sqlgridtest;
+
+CREATE TABLE team (
+         tmid INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+         tm_name VARCHAR(100)
+       );
+
+CREATE TABLE player (
+         plid INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+         pl_team INT,
+         pl_nickname VARCHAR(100),
+         pl_firstname VARCHAR(100),
+         pl_lastname VARCHAR(100),
+         FOREIGN KEY (pl_team) REFERENCES team(tmid)
+       );
+
+[enter 'password']
+
+</verbatim>
+
+*SqlGridPlugin Configuration* <br>
+Add the following to {SqlPlugin}{Databases}
+<verbatim>
+[
+  {
+    'id' => 'sqlgridtest',
+    'dsn' => 'dbi:mysql:sqlgridtest:localhost',
+    'username' => 'sqlgridtest',
+    'password' => 'password'
+  }
+]
+</verbatim>
+
+---+++ Grid Defaults
+
+<verbatim>
+%SQLGRID{
+ filterbar="on"
+ toolbar="on"
+ pager="on"
+ width="auto"
+ height="auto"
 }%
+</verbatim>
+
+---+++ Teams Grid
+
+%INCLUDE{"%TOPIC%" section="team_grid"}%
+
+---+++ Teams Grid Macro
+
+<verbatim>
+%STARTSECTION{"team_grid"}%
+%SQLGRID{
+  connector="%URLPARAM{"connector" default="mysql"}%"
+  dbconn="%URLPARAM{"dbconn" default="sqlgridtest"}%"
+
+  idcol="tmid"
+  sql="select tmid, tm_name from team where 1=1"
+
+  edit_popup_sqlgridbutton="%SCRIPTURL{"view"}%/%WEB%/%TOPIC%?skin=text;section=team_popup;verb=edit"
+  add_popup_sqlgridbutton="%SCRIPTURL{"view"}%/%WEB%/%TOPIC%?skin=text;section=team_popup;verb=add"
+  table_popupactionarg="team"
+
+  templates="%SYSTEMWEB%.SqlGridPluginSimpleTable, %WEB%.%TOPIC%"
+
+tmid_hidden="on"
+tm_name_title="Team"
+
+}%
+%ENDSECTION{"team_grid"}%
+</verbatim>
+
+---+++ Players Grid
+
+%INCLUDE{"%TOPIC%" section="player_grid"}%
+
+---+++ Players Grid Macro
+
+<verbatim>
+%STARTSECTION{"player_grid"}%
+%SQLGRID{
+  connector="%URLPARAM{"connector" default="mysql"}%"
+  dbconn="%URLPARAM{"dbconn" default="sqlgridtest"}%"
+
+  idcol="plid"
+  sql="select plid, pl_team, tm_name, pl_nickname, pl_firstname, pl_lastname from player, team where pl_team = tmid"
+
+  templates="%SYSTEMWEB%.SqlGridPluginSimpleTable, %WEB%.%TOPIC%"
+
+  add_popup_sqlgridbutton="%SCRIPTURL{"view"}%/%WEB%/%TOPIC%?skin=text;section=player_popup;verb=add"
+  edit_popup_sqlgridbutton="%SCRIPTURL{"view"}%/%WEB%/%TOPIC%?skin=text;section=player_popup;verb=edit"
+  table_popupactionarg="player"
+
+rows="5"
+
+plid_hidden="on"
+pl_team_hidden="on"
+tm_name_title="Team"
+pl_nickname_title="Nickname"
+pl_firstname_title="First Name"
+pl_lastname_title="Last Name"
+}%
+%ENDSECTION{"player_grid"}%
+</verbatim>
+
+---+++ Team Popup
+
+<verbatim>
+%STARTSECTION{"team_popup"}%
+<div title="%IF{" '%URLPARAM{verb}%' = 'edit'" then="Edit Team %URLPARAM{col_tmid}%" else="Add Team"}%" class="jqUIDialog { modal:true, resizable:true, draggable:true, height:400, width:600} sqlGridDialog">
+<form class='foswikiForm' >
+<input type='hidden' name='col_tmid' value='%URLPARAM{col_tmid}%'/>
+<div class='foswikiFormSteps'>
+  <div class='foswikiFormStep'>
+    <label for='col_tm_name'><b>Team:</b></label>
+    <input type='text' name='col_tm_name' value='%URLPARAM{col_tm_name}%' class='foswikiInputField foswikiFocus' />
+  </div>
+</div>
+</form>
+  <a class="jqUIDialogButton jqUIDialogSubmit {icon:'ui-icon-circle-check'}">%MAKETEXT{"Ok"}%</a>
+  <a class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"Cancel"}%</a>
+</div>
+%ENDSECTION{"team_popup"}%
+</verbatim>
+
+---+++ Player Popup
+
+<verbatim>
+%STARTSECTION{"player_popup"}%
+<div title="%IF{" '%URLPARAM{verb}%' = 'edit'" then="Edit Player %URLPARAM{col_plid}%" else="Add Player"}%" class="jqUIDialog { modal:true, resizable:true, draggable:true, height:400, width:600} sqlGridDialog">
+
+<form class='foswikiForm'>
+<input type='hidden' name='col_plid' value='%URLPARAM{col_plid}%'/>
+<div class='foswikiFormSteps'>
+  <div class='foswikiFormStep'>
+    <label for='col_pl_nickname'><b>Nickname:</b></label>
+    <input type='text' name='col_pl_nickname' value='%URLPARAM{col_pl_nickname}%' class='foswikiInputField foswikiFocus' />
+  </div>
+  <div class='foswikiFormStep'>
+    <label for='col_pl_firstname'><b>Firstname:</b></label>
+    <input type='text' name='col_pl_firstname' value='%URLPARAM{col_pl_firstname}%' class='foswikiInputField' />
+  </div>
+  <div class='foswikiFormStep'>
+    <label for='col_pl_lastname'><b>Lastname:</b></label>
+    <input type='text' name='col_pl_lastname' value='%URLPARAM{col_pl_lastname}%' class='foswikiInputField' />
+  </div>
+  <div class='foswikiFormStep'>
+    <label for='col_pl_team'><b>Team:</b></label>
+    <select name='col_pl_team'>
+%SQL{database="%URLPARAM{dbconn}%" query="select tm_name, tmid from team" format="<option value='$tmid' \
+$percntIF{\" '$tmid' = '%URLPARAM{col_pl_team}%' \" then=\"selected='selected'\"}$percnt \
+>$tm_name</option>"
+}%
+</select>
+  </div>
+</div>
+</form>
+
+  <a class="jqUIDialogButton jqUIDialogSubmit {icon:'ui-icon-circle-check'}">%MAKETEXT{"Ok"}%</a>
+  <a class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"Cancel"}%</a>
+</div>
+%ENDSECTION{"player_popup"}%
+</verbatim>
