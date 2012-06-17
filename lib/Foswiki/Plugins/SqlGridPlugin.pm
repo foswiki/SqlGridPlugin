@@ -49,7 +49,6 @@ sub writeDebug($) {
      = caller(1);
 	
 	$subroutine =~ s@^.*::([^:]+::[^:]+)$@$1@;
-	
 	Foswiki::Func::writeDebug($subroutine, $_[0]);
 }
 
