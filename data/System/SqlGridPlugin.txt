@@ -145,7 +145,7 @@ Are passed thru to the popup as key=value.
 
 ---++ SQL Parsing
 If you provide an sql parameter, then the plugin will parse it and inject the following parameters.
-If you have an SQL expression that's too complicated for the parser then instead of providing an sql parameter
+If you have an SQL expression that's too complicated for the parser, then instead of providing an sql parameter,
 you can set the following parameters:
 
    * fromwhere_connectorparam - the part of the SQL query after 'from'.  
